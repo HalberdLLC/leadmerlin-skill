@@ -37,7 +37,13 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ keyword: $json.keyword, location_codes: $json.location_codes, strictness: $json.strictness }) }}",
-        "options": {}
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
       },
       "id": "c4177d8c-4f58-4824-bad1-9f9eeeb0c4e8",
       "name": "Start search",
@@ -63,7 +69,7 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        660,
+        880,
         0
       ],
       "webhookId": "4d1bc908-9d95-48be-902a-f1532ccd1171"
@@ -80,7 +86,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        880,
+        1100,
         0
       ],
       "credentials": {
@@ -125,18 +131,19 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.status }}",
-                    "rightValue": "failed",
+                    "leftValue": "={{ ['failed','cancelled'].includes($json.status) }}",
+                    "rightValue": true,
                     "operator": {
-                      "type": "string",
-                      "operation": "equals"
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
                     }
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "failed"
+              "outputKey": "failed or cancelled"
             }
           ]
         },
@@ -150,20 +157,20 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        1100,
+        1320,
         0
       ]
     },
     {
       "parameters": {
-        "errorMessage": "={{ 'LeadMerlin job failed: ' + ($json.error || 'unknown error') }}"
+        "errorMessage": "={{ 'LeadMerlin job ' + $json.status + ': ' + ($json.error || 'no error message') }}"
       },
       "id": "f622e6d2-7f49-48df-99ad-4d61d1ffd29b",
       "name": "Job failed",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
-        1320,
+        1540,
         160
       ]
     },
@@ -205,7 +212,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1320,
+        1540,
         -160
       ],
       "credentials": {
@@ -225,7 +232,7 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        1540,
+        1760,
         -160
       ]
     },
@@ -315,7 +322,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1760,
+        1980,
         -160
       ]
     },
@@ -346,7 +353,7 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
       "position": [
-        1980,
+        2200,
         -160
       ]
     },
@@ -379,10 +386,55 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        2200,
+        2420,
         -160
       ],
       "notes": "Pick your Google Sheets credential and sheet. Header row: name, owner, email, email_status, phone, phone_type, website, city, rating, reviews, cms, gbp_url"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "oc-1",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "insufficient_credits",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Out of credits?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        550,
+        0
+      ],
+      "id": "lm-oc-if"
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ 'Out of LeadMerlin credits (balance ' + $json.balance + ', needed ' + $json.required + '). Upgrade at https://app.leadmerlin.com/billing (Starter $39/mo, Pro $49/mo, Agency $97/mo), then run the workflow again.' }}"
+      },
+      "name": "Upgrade needed",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        990,
+        -160
+      ],
+      "id": "lm-oc-stop"
     }
   ],
   "connections": {
@@ -412,7 +464,7 @@
       "main": [
         [
           {
-            "node": "Wait 20s",
+            "node": "Out of credits?",
             "type": "main",
             "index": 0
           }
@@ -504,6 +556,24 @@
         [
           {
             "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Out of credits?": {
+      "main": [
+        [
+          {
+            "node": "Upgrade needed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 20s",
             "type": "main",
             "index": 0
           }
