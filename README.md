@@ -25,9 +25,22 @@ curl -sL https://raw.githubusercontent.com/HalberdLLC/leadmerlin-skill/main/skil
 
 Then ask: *"Find dentists in Irvine, CA with verified emails and export a CSV."*
 
-**Cursor / Codex / other agents:** add `skills/leads/SKILL.md` to your project
-rules or agent instructions. It is plain Markdown describing the endpoints,
-credit rules and CSV format.
+**Cursor:** save the file as a project rule:
+
+```bash
+mkdir -p .cursor/rules
+curl -sL https://raw.githubusercontent.com/HalberdLLC/leadmerlin-skill/main/skills/leads/SKILL.md -o .cursor/rules/leadmerlin.mdc
+```
+
+**Codex / other agents:** append the contents of `skills/leads/SKILL.md` to
+your `AGENTS.md` (or the agent's instructions). It is plain Markdown describing
+the endpoints, credit rules and CSV format.
+
+Full setup guides: [leadmerlin.com/skill](https://leadmerlin.com/skill/?utm_source=github&utm_medium=skill-repo).
+
+The skill is generated from the main repo (`.claude/skills/leads/SKILL.md` in
+`HalberdLLC/lead-merlin`), which follows the `/api/v2` contract. Open issues
+there, not here.
 
 ## 3. Try it without spending credits
 
@@ -52,6 +65,11 @@ append/update a Google Sheet.
 Step-by-step guide: [leadmerlin.com/blog/n8n-google-maps-leads-to-google-sheets](https://leadmerlin.com/blog/n8n-google-maps-leads-to-google-sheets/?utm_source=github&utm_medium=skill-repo)
 
 ## Credits
+
+When the balance hits zero (HTTP 402 `insufficient_credits`) the skill and the
+n8n template stop and point you to the plans at
+[app.leadmerlin.com/billing](https://app.leadmerlin.com/billing?utm_source=github&utm_medium=skill-repo):
+Starter $39/mo (10,000 leads), Pro $49/mo (20,000), Agency $97/mo (50,000).
 
 1 credit per enriched business with a website. Listings without a website and
 off-niche results are free; failed enrichments are refunded. Docs:
