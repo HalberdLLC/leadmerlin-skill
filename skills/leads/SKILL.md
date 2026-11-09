@@ -41,6 +41,7 @@ AUTH=(-H "x-api-key: $LEADMERLIN_API_KEY")
 - Report: `POST $BASE/v2/reports { business_id, field: owner|email|phone|website|other, note? }` — when the user says a field is wrong
 - Spec: `GET $BASE/v2/openapi.json` — full OpenAPI 3.1 description, no auth
 - Demo: `$BASE/v2/demo/*` mirrors (locations, searches, jobs/:id, jobs/:id/results, enrichments) — no auth, no credits, responses carry `demo: true`. Use these to test the flow before spending credits.
+- `GET $BASE/v2/tools/tech?url=example.com` — free, no auth, IP rate-limited: one site's CMS, analytics, ad pixels, chat, booking, ordering, review tools, socials and email count. Use it to qualify a single website the user names; use searches/enrichments for lists.
 
 ## Credits
 
